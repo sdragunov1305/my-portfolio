@@ -1,75 +1,36 @@
-# Portfolio site (Next.js)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Статический и серверный рендер одностраничного портфолио. Чтобы **открыть сайт для всех в интернете**, опубликуйте проект на хостинге (ниже — Vercel).
+## Getting Started
 
-## Домен продакшена: fat-snail.com
-
-Основной сайт: **[https://fat-snail.com](https://fat-snail.com)** (регистр в URL не важен).
-
-После деплоя на **Vercel**:
-
-1. Проект → **Settings → Domains** → **Add** → введите `fat-snail.com` (при необходимости и `www.fat-snail.com`).
-2. В панели регистратора домена выставьте **DNS** так, как покажет Vercel (обычно **A** на `76.76.21.21` или **CNAME** на `cname.vercel-dns.com` для поддомена).
-3. **Settings → Environment Variables** → для среды **Production** добавьте  
-   `NEXT_PUBLIC_SITE_URL` = `https://fat-snail.com`  
-   затем **Deployments → … → Redeploy** последнего продакшен-деплоя — чтобы в метаданных, Open Graph и `sitemap.xml` везде был правильный адрес.
-
-Пока домен не привязан к Vercel, сайт по-прежнему открывается по адресу вида `https://cursor-site-nine.vercel.app`.
-
-## Передача проекта человеку, у которого уже есть домен
-
-**Что отправить ему**
-
-- Весь каталог этого проекта (**папка `cursor-site` целиком**), **без** тяжёлых папок (их можно не класть в архив — получатель сам поставит зависимости):
-  - не включать: `node_modules`, `.next`, `.vercel`;
-  - включить: `src`, `public`, `package.json`, `package-lock.json` или `pnpm-lock.yaml`, `next.config.ts`, `vercel.json`, `.env.example`, остальные файлы конфигурации.
-- Удобнее всего: **ссылка на Git-репозиторий** (GitHub и т.д.) — тогда архив не нужен.
-
-**Что сделает получатель с доменом**
-
-1. Установит [Node.js 20+](https://nodejs.org/) и выполнит в папке проекта: `npm install` → `npm run build` → `npm run start` (проверка у себя на компьютере).
-2. Выложит сайт в продакшен. Проще всего — **Vercel** (бесплатный HTTPS): подключить репозиторий или загрузить проект, в **Settings → Domains** добавить **его** домен и выставить DNS у регистратора так, как покажет Vercel.
-3. В **Environment Variables** (Vercel или другой хостинг) задать **`NEXT_PUBLIC_SITE_URL`** = полный адрес сайта с доменом, например `https://example.com` (без слэша в конце). Так совпадут превью в соцсетях и `sitemap.xml`.
-
-Итог: ты передаёшь **код**; он **деплоит** и **привязывает DNS** своего домена к хостингу. Доступ к твоему регистратору доменов ему не обязателен, если домен его.
-
-## Локально
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Откройте [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Публикация на Vercel (бесплатный HTTPS)
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-1. Залейте папку `cursor-site` в репозиторий на GitHub (или GitLab / Bitbucket).
-2. Зайдите на [vercel.com](https://vercel.com), войдите через GitHub.
-3. **Add New Project** → выберите репозиторий → **Root Directory** укажите `cursor-site`, если репозиторий — монорепо с корнем выше.
-4. Нажмите **Deploy**. Через минуту появится адрес вида `https://<имя>.vercel.app`.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### Свой домен
+## Learn More
 
-В проекте Vercel: **Settings → Domains** — добавьте домен и DNS по подсказкам Vercel.
+To learn more about Next.js, take a look at the following resources:
 
-### Переменная окружения (рекомендуется)
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-В **Settings → Environment Variables** добавьте для **Production** (и при необходимости Preview):
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-| Name | Value |
-|------|--------|
-| `NEXT_PUBLIC_SITE_URL` | `https://fat-snail.com` (продакшен) или временно `https://<проект>.vercel.app` |
+## Deploy on Vercel
 
-Так корректно соберутся канонический URL, Open Graph и `sitemap.xml`.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Скопируйте пример из `.env.example`.
-
-## Сборка вручную
-
-```bash
-npm run build
-npm run start
-```
-
-Нужен Node.js **20.9+** (см. `engines` в `package.json`).
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

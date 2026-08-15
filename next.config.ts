@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "img.youtube.com" },
-      { protocol: "https", hostname: "img.itch.zone" },
-      { protocol: "https", hostname: "miro.medium.com" },
-      { protocol: "https", hostname: "media.licdn.com" },
-    ],
-  },
+  /* config options here */
 };
 
 export default nextConfig;
+module.exports = {
+  output: 'export',
+  basePath: '/my-portfolio',
+  assetPrefix: '/my-portfolio/',
+  }
