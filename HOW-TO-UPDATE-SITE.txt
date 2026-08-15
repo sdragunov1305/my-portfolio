@@ -1,0 +1,34 @@
+How to publish the site on GitHub Pages
+(https://sdragunov1305.github.io/my-portfolio/)
+
+Vercel is not used. GitHub Pages can only host static files.
+
+1. Unzip cursor-site-update.zip.
+2. Copy ALL files into the ROOT of repo my-portfolio
+   (same folder as package.json). There is no cursor-site folder.
+3. git add .
+   git commit -m "Deploy Next site to GitHub Pages"
+   git push
+
+4. GitHub → Settings → Actions → General → Workflow permissions
+   → Read and write permissions → Save
+
+5. Open the Actions tab, wait until "Deploy to GitHub Pages" is green.
+   This creates a branch named gh-pages with the built site.
+
+6. Settings → Pages → Build and deployment
+   Source: Deploy from a branch
+   Branch: gh-pages
+   Folder: / (root)
+   Save
+
+7. Open https://sdragunov1305.github.io/my-portfolio/
+   Hard refresh: Ctrl+F5
+
+If you still see the default README, Pages is publishing main/master
+(the source code), not gh-pages (the built site). Change the branch
+in step 6.
+
+Custom domain later (fat-snail.com):
+  Pages → Custom domain
+  In the workflow set GITHUB_PAGES_ROOT=true so paths are not /my-portfolio.

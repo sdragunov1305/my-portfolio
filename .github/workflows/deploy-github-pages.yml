@@ -1,0 +1,40 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Static export only (GitHub Pages has no Node server)
+        run: rm -rf src/app/api
+      - name: Build
+        env:
+          GITHUB_PAGES: "true"
+          NEXT_PUBLIC_SITE_URL: https://sdragunov1305.github.io/my-portfolio
+        run: npm run build
+      - name: Keep _next folder on Pages
+        run: touch out/.nojekyll
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          force_orphan: true
