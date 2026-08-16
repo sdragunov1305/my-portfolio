@@ -1,6 +1,9 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { VlogItem } from "@/data/content";
+import { slugId } from "@/lib/vlog-id";
+
+export { slugId };
 
 const jsonPath = path.join(process.cwd(), "data", "posted-vlogs.json");
 const uploadsDir = path.join(process.cwd(), "public", "uploads");
@@ -30,13 +33,4 @@ export async function saveUpload(file: File): Promise<string> {
   await mkdir(uploadsDir, { recursive: true });
   await writeFile(path.join(uploadsDir, name), bytes);
   return `/uploads/${name}`;
-}
-
-export function slugId(title: string) {
-  const base = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-  return `post-${base || "vlog"}-${Date.now().toString(36)}`;
 }

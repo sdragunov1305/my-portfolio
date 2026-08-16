@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { withBasePath } from "@/lib/asset";
+import {
+  deleteVlogOnGithub,
+  isLocalDevHost,
+  listPostedVlogsFromGithub,
+  publishVlogToGithub,
+} from "@/lib/github-vlogs";
+import { slugId } from "@/lib/vlog-id";
 
 type Posted = {
   id: string;
@@ -13,6 +20,7 @@ type Posted = {
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
+  const [githubToken, setGithubToken] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -22,17 +30,30 @@ export default function AdminPage() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [posts, setPosts] = useState<Posted[]>([]);
+  const [staticHost, setStaticHost] = useState(false);
 
   const headers = () => ({ "x-admin-password": password });
 
   async function loadPosts() {
-    const res = await fetch(withBasePath("/api/vlogs"), { cache: "no-store" });
-    const data = (await res.json()) as { vlogs?: Posted[] };
-    setPosts(data.vlogs ?? []);
+    try {
+      if (isLocalDevHost()) {
+        const res = await fetch(withBasePath("/api/vlogs"), { cache: "no-store" });
+        const data = (await res.json()) as { vlogs?: Posted[] };
+        setPosts(data.vlogs ?? []);
+        return;
+      }
+      const list = await listPostedVlogsFromGithub();
+      setPosts(list);
+    } catch {
+      setPosts([]);
+    }
   }
 
   useEffect(() => {
+    setStaticHost(!isLocalDevHost());
     const saved = sessionStorage.getItem("admin-password");
+    const token = sessionStorage.getItem("admin-github-token");
+    if (token) setGithubToken(token);
     if (saved) {
       setPassword(saved);
       setUnlocked(true);
@@ -47,6 +68,7 @@ export default function AdminPage() {
     e.preventDefault();
     if (!password.trim()) return;
     sessionStorage.setItem("admin-password", password);
+    if (githubToken.trim()) sessionStorage.setItem("admin-github-token", githubToken.trim());
     setUnlocked(true);
     setStatus("");
   }
@@ -55,13 +77,41 @@ export default function AdminPage() {
     e.preventDefault();
     setBusy(true);
     setStatus("");
-    const form = new FormData();
-    form.set("title", title);
-    form.set("excerpt", excerpt);
-    form.set("fullText", fullText);
-    form.set("date", date);
-    if (photo) form.set("photo", photo);
     try {
+      if (staticHost) {
+        const token = githubToken.trim();
+        if (!token) {
+          setStatus("Paste a GitHub token first. Without it the post cannot be saved on this site.");
+          return;
+        }
+        sessionStorage.setItem("admin-github-token", token);
+        await publishVlogToGithub({
+          token,
+          photo,
+          item: {
+            id: slugId(title),
+            title: title.trim(),
+            date: date || new Date().toISOString().slice(0, 10),
+            excerpt: excerpt.trim() || fullText.trim().slice(0, 180),
+            image: "",
+            fullText: fullText.trim(),
+          },
+        });
+        setTitle("");
+        setExcerpt("");
+        setFullText("");
+        setPhoto(null);
+        setStatus("Saved. GitHub will rebuild the site in 1–2 minutes, then refresh the homepage.");
+        await loadPosts();
+        return;
+      }
+
+      const form = new FormData();
+      form.set("title", title);
+      form.set("excerpt", excerpt);
+      form.set("fullText", fullText);
+      form.set("date", date);
+      if (photo) form.set("photo", photo);
       const res = await fetch(withBasePath("/api/vlogs"), { method: "POST", headers: headers(), body: form });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
@@ -78,8 +128,13 @@ export default function AdminPage() {
       setPhoto(null);
       setStatus("Published — it is now in Latest Updates.");
       await loadPosts();
-    } catch {
-      setStatus("Network error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not publish";
+      if (/Bad credentials|401|Requires authentication/i.test(message)) {
+        setStatus("GitHub token is wrong, or it has no write access to my-portfolio.");
+      } else {
+        setStatus(message);
+      }
     } finally {
       setBusy(false);
     }
@@ -87,11 +142,25 @@ export default function AdminPage() {
 
   async function remove(id: string) {
     if (!confirm("Delete this post?")) return;
-    const res = await fetch(`${withBasePath("/api/vlogs")}?id=${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      headers: headers(),
-    });
-    if (res.ok) await loadPosts();
+    try {
+      if (staticHost) {
+        const token = githubToken.trim();
+        if (!token) {
+          setStatus("Paste a GitHub token first.");
+          return;
+        }
+        await deleteVlogOnGithub(token, id);
+        await loadPosts();
+        return;
+      }
+      const res = await fetch(`${withBasePath("/api/vlogs")}?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: headers(),
+      });
+      if (res.ok) await loadPosts();
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Could not delete");
+    }
   }
 
   return (
@@ -100,8 +169,7 @@ export default function AdminPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200/80">Site owner</p>
         <h1 className="mt-2 text-3xl font-extrabold">Post a vlog</h1>
         <p className="mt-2 text-sm text-white/60">
-          Write a title, add a photo, paste your text. It shows up in Latest Updates. No code.
-          On GitHub Pages this form only works if you run the site locally (`npm run dev`) and then push the saved files.
+          Write a title, add a photo, paste your text. It shows up in Latest Updates after the site rebuilds.
         </p>
 
         {!unlocked ? (
@@ -115,6 +183,22 @@ export default function AdminPage() {
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-white outline-none focus:border-violet-400/60"
               />
             </label>
+            {staticHost ? (
+              <label className="block text-sm text-white/80">
+                GitHub token
+                <input
+                  type="password"
+                  value={githubToken}
+                  onChange={(e) => setGithubToken(e.target.value)}
+                  placeholder="ghp_… or github_pat_…"
+                  className="mt-1 w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-white outline-none focus:border-violet-400/60"
+                />
+                <span className="mt-2 block text-xs leading-relaxed text-white/45">
+                  GitHub → Settings → Developer settings → Personal access tokens. Allow Contents: Read and
+                  write for the my-portfolio repo. The form cannot save without this — there is no server.
+                </span>
+              </label>
+            ) : null}
             <button
               type="submit"
               className="w-full rounded-xl border border-white/80 px-4 py-2.5 text-sm font-bold uppercase tracking-wider hover:bg-white/10"
@@ -124,6 +208,23 @@ export default function AdminPage() {
           </form>
         ) : (
           <>
+            {staticHost ? (
+              <label className="mt-6 block text-sm text-white/80">
+                GitHub token
+                <input
+                  type="password"
+                  value={githubToken}
+                  onChange={(e) => {
+                    setGithubToken(e.target.value);
+                    if (e.target.value.trim()) {
+                      sessionStorage.setItem("admin-github-token", e.target.value.trim());
+                    }
+                  }}
+                  placeholder="ghp_… or github_pat_…"
+                  className="mt-1 w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-white outline-none focus:border-violet-400/60"
+                />
+              </label>
+            ) : null}
             <form onSubmit={publish} className="mt-8 space-y-4 rounded-2xl border border-white/15 bg-white/8 p-5">
               <label className="block text-sm text-white/80">
                 Title

@@ -28,7 +28,8 @@ jobs:
       - name: Build
         env:
           GITHUB_PAGES: "true"
-          NEXT_PUBLIC_SITE_URL: https://sdragunov1305.github.io/my-portfolio
+          GITHUB_PAGES_ROOT: "true"
+          NEXT_PUBLIC_SITE_URL: https://fat-snail.com
         run: npm run build
       - name: Keep _next folder on Pages
         run: touch out/.nojekyll
@@ -38,3 +39,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           force_orphan: true
+          cname: fat-snail.com
