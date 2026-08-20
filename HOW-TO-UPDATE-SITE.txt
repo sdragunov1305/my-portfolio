@@ -1,34 +1,30 @@
-How to publish the site on GitHub Pages
-(https://sdragunov1305.github.io/my-portfolio/)
+Как обновить сайт fat-snail.com
+(GitHub repo: my-portfolio)
 
-Vercel is not used. GitHub Pages can only host static files.
+Что в этом обновлении
+- Кнопка Devlog ведёт на Telegram: https://t.me/Gamedev_Pedia
+- Сборка под домен fat-snail.com (без пути /my-portfolio), чтобы стили и видео не ломались
+- Форма влогов на /admin сохраняет посты в GitHub (нужен токен)
 
-1. Unzip cursor-site-update.zip.
-2. Copy ALL files into the ROOT of repo my-portfolio
-   (same folder as package.json). There is no cursor-site folder.
+Как залить
+
+1. Распаковать cursor-site-update.zip ИЛИ скопировать папку site-for-github.
+2. Всё содержимое положить в КОРЕНЬ репозитория my-portfolio
+   (рядом с package.json). Папки cursor-site быть не должно.
 3. git add .
-   git commit -m "Deploy Next site to GitHub Pages"
+   git commit -m "Update: Devlog Telegram link, GitHub Pages for fat-snail.com"
    git push
+   (или Commit + Push в GitHub Desktop)
 
-4. GitHub → Settings → Actions → General → Workflow permissions
-   → Read and write permissions → Save
+4. GitHub → вкладка Actions → дождаться зелёного Deploy to GitHub Pages.
 
-5. Open the Actions tab, wait until "Deploy to GitHub Pages" is green.
-   This creates a branch named gh-pages with the built site.
-
-6. Settings → Pages → Build and deployment
+5. Settings → Pages:
    Source: Deploy from a branch
    Branch: gh-pages
    Folder: / (root)
-   Save
+   Custom domain: fat-snail.com
+   Save, потом Enforce HTTPS.
 
-7. Open https://sdragunov1305.github.io/my-portfolio/
-   Hard refresh: Ctrl+F5
+6. Открыть https://fat-snail.com и нажать Ctrl+F5.
 
-If you still see the default README, Pages is publishing main/master
-(the source code), not gh-pages (the built site). Change the branch
-in step 6.
-
-Custom domain later (fat-snail.com):
-  Pages → Custom domain
-  In the workflow set GITHUB_PAGES_ROOT=true so paths are not /my-portfolio.
+Не копировать: node_modules, .next, .env.local

@@ -50,7 +50,7 @@ export const hero: HeroConfig = {
 export const featuredGame = {
   eyebrow: "My current game.",
   title: "Ritual Cleaner",
-  devlogHref: "https://www.tiktok.com/@sergey.dragunov8?_r=1&_t=ZN-95IJrGPYIMw",
+  devlogHref: "https://t.me/Gamedev_Pedia",
   devlogLabel: "Devlog",
   photo: "",
   video: "/videos/featured-ritual-cleaner.mp4",
